@@ -7,7 +7,7 @@
 3. 如果仍有问题可查看[用户脚本安装手册](https://greasyfork.org/zh-CN/help/installing-user-scripts?locale_override=1)
 
 ## 脚本名称列表
-- jirengu video hotkeys
+- [jirengu video hotkeys](https://greasyfork.org/en/scripts/454346-jirengu-video-hotkeys)
 
 ## 脚本自定义
 1）脚本注释中的元键  
