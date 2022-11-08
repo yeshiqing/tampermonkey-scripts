@@ -7,14 +7,15 @@
 // @match          https://xiedaimala.com/tasks/*
 // @match          https://jirengu.com/tasks/*
 // @grant          none
-// @version        0.0.1
+// @version        0.0.2
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // ==/UserScript==
 
 document.onreadystatechange = () => {
     setTimeout(() => { // 等待 xhr 成功返回数据
-        let videoTitle = document.querySelector('.video-title').innerHTML.replace(/ /g, '')
+        let ele = document.querySelector('.video-title') || document.querySelector('j-panel-title h1')
+        let videoTitle = ele.innerHTML.replace(/ /g, '')
         document.title = videoTitle
     }, 2000)
 }
