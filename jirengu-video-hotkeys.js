@@ -17,7 +17,7 @@ const VIDEOAUTOPLAY = true
 document.onreadystatechange = () => {
     setTimeout(() => { // 等待 xhr 成功返回数据
         let ele_title = document.querySelector('.video-title') || document.querySelector('j-panel-title h1')
-        document.title = ele_title.innerHTML
+        ele_title && (document.title = ele_title.innerHTML)
 
         let ele_video = document.querySelector('.vjs-big-play-button')
         if (VIDEOAUTOPLAY && ele_video) {
