@@ -7,7 +7,7 @@
 // @match          https://xiedaimala.com/tasks/*
 // @match          https://jirengu.com/tasks/*
 // @grant          none
-// @version        0.0.4
+// @version        0.0.5
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // ==/UserScript==
@@ -16,12 +16,37 @@ const VIDEO_AUTOPLAY = true
 const VOLUME_ADJUST_ARROWKEY_DOWN = 3
 const IGNOREEVENTS = ['mousemove', 'mouseenter', 'mouseleave', 'mouseover'] // 用于研究事件劫持 // ['mousedown']
 const DEBUG_MODE = true
-const ESCAPE_HIJACK = true
-const VIDEO_CLICK_DISABLE = false
+const LOG_VIDEO_STATUS = false
+const VIDEO_DBLCLICK_DISABLE = true        // disable double click to fullscreen. I don't use fullscreen and it may unintentionally be triggered when toggle application.
+const ESCAPE_KEYUP_HIJACK = true           // escape keyup 加入 hook
+const VIDEO_CLICK_DISABLE = false          // 禁用单击视频事件
+const TRIGGER_WEBPACKJSONP_API = true      // 调用饥人谷提供的 webpackJsonp API
+
 const EVENTS_CONFIG = {
-
+    'keyup': [{
+        'eventName': 'keyup',
+        'key': 'Escape',
+        'this': document,
+        'fn': 'pauseVideo',
+        'hijack': ESCAPE_KEYUP_HIJACK, // 是否插入 hook
+        'disable': false         // 是否禁用原有事件处理程序
+    }],
+    'click': [{
+        'eventName': 'click',
+        'key': null,
+        'this': video,
+        'fn': 'click-video',
+        'hijack': true,
+        'disable': VIDEO_CLICK_DISABLE
+    }],
+    'dblclick': [{
+        'eventName': 'dblclick',
+        'key': null,
+        'this': 'video',
+        'fn': 'video-dblclick-disable',
+        'disable': VIDEO_DBLCLICK_DISABLE
+    }]
 }
-
 
 window.onload = () => {
     setTimeout(() => { // wait for xhr done
@@ -53,31 +78,19 @@ window.addEventListener('keydown', (e) => {
     }
 })
 
-// disable double click to fullscreen. I don't use fullscreen and it may unintentionally be triggered when toggle application.
-let video = document.querySelector('video')
-video && video.addEventListener('dblclick', (e) => {
-    e.stopImmediatePropagation()
-}, true)
-
+var video = document.querySelector('video')
+let video_status = 'loadedmetadata' // loadedmetadata playing play waiting pause ended
 let $hijack = {
-    events: {
-        'keyup': [{
-            'eventName': 'keyup',
-            'key': 'Escape',
-            'this': document,
-            'fn': 'keyup-Escape-document',
-            'hijack': ESCAPE_HIJACK,
-            'disable': false
-        }],
-        'click': [{
-            'eventName': 'click',
-            'key': null,
-            'this': video,
-            'fn': 'click-video',
-            'disable': VIDEO_CLICK_DISABLE
-        }]
+    events: EVENTS_CONFIG,
+    videoEvents: {
+        'eventName': ['playing', 'play', 'waiting', 'pause', 'ended', 'loadedmetadata'],
+        'key': null,
+        'this': 'video', // 没有用到，用到需要转化成对象
+        'fn': 'setVideoStatus',
+        'hijack': true,
+        'disable': false
     },
-    'keyup-Escape-document'(event) {
+    'pauseVideo'(event) {
         // 停止播放
         setTimeout(() => { // 应对异步操作：UI 更新
             let btn = document.querySelector('.vjs-play-control.vjs-button')
@@ -87,6 +100,10 @@ let $hijack = {
         }, 0)
     },
     'click-video'(event) {
+    },
+    'setVideoStatus'(event) {
+        video_status = event.type
+        LOG_VIDEO_STATUS && console.log(video_status);
     },
     /**
      * @return {boolean} 是否拦截原事件处理程序
@@ -98,64 +115,40 @@ let $hijack = {
             disable = (typeof disable === 'boolean' ? disable : false) // 默认 disable 为 false
             hijack = (typeof hijack === 'boolean' ? hijack : true) // 默认 hijack 为 true
             let fn = $hijack[obj.fn] || function (e) { };
-            (hijack || disable) && fn(event)
+            hijack && fn(event)
 
             return disable
         }
         return false
     },
-    getEvent(event) {
-        let arr = $hijack._getEventsArr(event)
-        if (arr) {
-            return $hijack._getEvent(event, arr)
+    getThis(selector) {
+        if (selector instanceof Object) {
+            return selector
+        } else if (typeof selector === 'string') {
+            return document.querySelector(selector)
         }
         return null
     },
-    _getEvent(event, arr) {
-        let currentTarget = event.currentTarget
-        let key = event.key
-        let obj = arr.find((el, i) => {
-            return el['this'] === currentTarget && (el[key] ? el[key] === key : true)
-        })
-        return obj || null
-    },
-    _getEventsArr(event) {
+    getEvent(event) {
         let eventName = event.type
-        return $hijack.events[eventName] || null
-    },
-    getFn(event) {
-        let arr = $hijack._getEventsArr(event)
-        if (arr) {
-            let obj = $hijack._getEvent(event, arr)
-            if (obj) {
-                return $hijack[obj.fn]
-            } else {
-                return function () { }
-            }
+        const videoEvents = $hijack.videoEvents
+        const VIDEO_EVENTNAME = videoEvents.eventName
+        if (VIDEO_EVENTNAME.includes(eventName)) {
+            return videoEvents
         }
-        return function () { }
-    },
-    has(event) {
-        let eventName = event.type
-        let currentTarget = event.currentTarget
-        let key = event.key
-        let arr = $hijack.events[eventName]
+
+        let arr = $hijack.events[eventName] || null
         if (arr) {
-            return !!(arr.find((el, i) => {
-                return el['this'] === currentTarget && (el[key] ? el[key] === key : true)
-            }))
+            let currentTarget = event.currentTarget
+            let key = event.key
+            let obj = arr.find((el, i) => {
+                return $hijack.getThis(el['this']) === currentTarget && (el[key] ? el[key] === key : true)
+            })
+            return obj || null
         }
-        return false
+        return null
     }
 }
-
-let video_status = 'loadedmetadata' // loadedmetadata playing play waiting pause ended
-let setVideoStatus = function (event) {
-    const VIDEO_EVENTNAME = ['playing', 'play', 'waiting', 'pause', 'ended', 'loadedmetadata']
-    let eventName = event.type
-    VIDEO_EVENTNAME.includes(eventName) && (video_status = eventName)
-}
-
 
 const OLD_ADD_EL = EventTarget.prototype.addEventListener
 EventTarget.prototype.addEventListener = function (eventName, fn, ...args) {
@@ -169,10 +162,7 @@ EventTarget.prototype.addEventListener = function (eventName, fn, ...args) {
         return
     }
 
-
     OLD_ADD_EL.call(this, eventName, function foo(event) {
-        setVideoStatus(event)
-
         if ($hijack.trigger(event)) {
             return
         }
@@ -185,6 +175,7 @@ EventTarget.prototype.addEventListener = function (eventName, fn, ...args) {
 {
     const DIGIT_RANDOM = Date.now();
     const ID3145 = Number('' + 3145 + DIGIT_RANDOM) // override ArrowRight & ArrowLeft hotkeys
+    const start_arr = TRIGGER_WEBPACKJSONP_API ? [ID3145] : []
     window.webpackJsonp([], {
         [ID3145]: function (e, t, n) {
             "use strict";
@@ -258,12 +249,12 @@ EventTarget.prototype.addEventListener = function (eventName, fn, ...args) {
                             o(e)
                         })
                     })
-                }),
-                    t.listen(),
-                    document.addEventListener("onQuestionFormDialogToggle", function (e) {
-                        e.detail ? t.pause() : t.listen()
-                    })
+                });
+                t.listen();
+                document.addEventListener("onQuestionFormDialogToggle", function (e) {
+                    e.detail ? t.pause() : t.listen()
+                });
             })
         }
-    }, [ID3145])
+    }, start_arr)
 }
