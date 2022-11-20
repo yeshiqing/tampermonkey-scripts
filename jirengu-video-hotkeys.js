@@ -9,7 +9,7 @@
 // @grant          none
 // @version        0.0.6
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
-// @icon           data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
+// @icon           https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // ==/UserScript==
 
 /**
