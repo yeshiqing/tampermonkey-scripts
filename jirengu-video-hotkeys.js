@@ -7,7 +7,7 @@
 // @match          https://xiedaimala.com/tasks/*
 // @match          https://jirengu.com/tasks/*
 // @grant          none
-// @version        0.0.6
+// @version        0.0.7
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // ==/UserScript==
@@ -25,7 +25,7 @@ const VIDEO_CLICK_DISABLE = false          // 用于调试，不触发源代码�
 const CMD_KEYDOWN_DISABLE = false
 const F_KEYUP_HIJACK = true
 const F_KEYUP_DISABLE = true
-const AUTO_FULLWINDOW = false
+const AUTO_FULLWINDOW = true              // 自动「网页全屏」
 const LOG_VIDEO_STATUS = false
 const VIDEO_AUTOPLAY = true
 const DEBUG_EVENT = false
@@ -205,7 +205,7 @@ EventTarget.prototype.addEventListener = function (eventName, fn, ...args) {
     }
     window.webpackJsonp([], {
         [DIGIT_RANDOM]: function () {
-            console.log(arguments);
+            // console.log(arguments);
         },
         [ID3145]: function (e, t, n) {
             "use strict";
