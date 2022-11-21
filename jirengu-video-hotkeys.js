@@ -25,7 +25,7 @@ const VIDEO_CLICK_DISABLE = false          // 用于调试，不触发源代码�
 const CMD_KEYDOWN_DISABLE = false
 const F_KEYUP_HIJACK = true
 const F_KEYUP_DISABLE = true
-const AUTO_FULLWINDOW = true              // 自动「网页全屏」
+const AUTO_FULLWINDOW = true               // 自动「网页全屏」
 const LOG_VIDEO_STATUS = false
 const VIDEO_AUTOPLAY = true
 const DEBUG_EVENT = false
@@ -39,13 +39,13 @@ const EVENTS_CONFIG = {
         'hijack': ESCAPE_KEYUP_HIJACK, // 是否插入 hook
         'disable': false         // 是否禁用原有事件处理程序
     }, {
-            'eventName': 'keyup',
-            'key': 'f',
-            'this': document,
-            'fn': 'websiteScreen',
-            'hijack': F_KEYUP_HIJACK,
-            'disable': F_KEYUP_DISABLE
-        }],
+        'eventName': 'keyup',
+        'key': 'f',
+        'this': document,
+        'fn': 'websiteScreen',
+        'hijack': F_KEYUP_HIJACK,
+        'disable': F_KEYUP_DISABLE
+    }],
     'keydown': [{
         'eventName': 'keydown',
         'key': 'Meta',
