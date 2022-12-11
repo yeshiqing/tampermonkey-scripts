@@ -7,7 +7,7 @@
 // @match          https://xiedaimala.com/tasks/*
 // @match          https://jirengu.com/tasks/*
 // @grant          none
-// @version        0.0.9
+// @version        0.0.10
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // ==/UserScript==
@@ -80,10 +80,26 @@ const EVENTS_CONFIG = {
 
 window.onload = () => {
     setTimeout(() => { // wait for xhr done
+        $init.getVideoTitle()
+        $init.videoAutoPlay()
+    }, 2000)
+
+    $init.disableWatermark()
+}
+
+let $init = {
+    getVideoTitle() {
         let ele_title = document.querySelector('.video-title') || document.querySelector('j-panel-title h1')
         ele_title && (document.title = ele_title.innerHTML)
-
-        // video auto play
+    },
+    disableWatermark() {
+        let style = document.createElement('style')
+        style.innerText = `
+        #xdml-video-watermark{display:none;}
+        `.trim()
+        document.head.appendChild(style)
+    },
+    videoAutoPlay() {
         if (VIDEO_AUTOPLAY) {
             let ele_playButton = document.querySelector('.vjs-big-play-button')
             ele_playButton && ele_playButton.click()
@@ -92,7 +108,7 @@ window.onload = () => {
                 ele_fullWin && ele_fullWin.click()
             }
         }
-    }, 2000)
+    }
 }
 
 
