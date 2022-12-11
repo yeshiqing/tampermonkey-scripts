@@ -6,9 +6,9 @@
 // @run-at         document-start
 // @match          *://*/*
 // @grant          none
-// @version        0.0.2
+// @version        0.0.3
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
-// @icon           https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
+// @icon           https://upload-images.jianshu.io/upload_images/1231311-26b5e3552753c5bb.png
 // ==/UserScript==
 
 let isFn = function (x) { return (x instanceof Function) }
