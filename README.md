@@ -18,4 +18,4 @@ https://greasyfork.org/en/help/meta-keys
 https://www.toptal.com/developers/keycode
 
 ## 结尾
-欢迎 fork、star
+欢迎 Fork、Star
