@@ -8,6 +8,7 @@
 
 ## 脚本名称列表
 - [jirengu video hotkeys](https://greasyfork.org/en/scripts/454346-jirengu-video-hotkeys)：饥人谷课程视频快捷键
+- [Chrome DevTools console](https://greasyfork.org/en/scripts/456446-chrome-devtools-console)：Chrome 开发者工具 console 快捷语法
 
 ## 脚本自定义
 1）脚本注释中的元键  
