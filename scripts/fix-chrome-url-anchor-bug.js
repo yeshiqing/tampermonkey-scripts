@@ -4,14 +4,13 @@
 // @author         yeshiqing
 // @license        MIT
 // @run-at         document-idle
-// @match          https://developer.mozilla.org/
+// @match          https://developer.mozilla.org/*
 // @grant          none
 // @version        0.0.1
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           https://upload-images.jianshu.io/upload_images/1231311-26b5e3552753c5bb.png
 // ==/UserScript==
 
-// 目前仅在 MDN 有效
 const DEBUG_Mode = false
 let isChrome = window.navigator.userAgent.includes('Chrome')
 if (isChrome) {
