@@ -7,7 +7,7 @@
 // @match          https://xiedaimala.com/tasks/*
 // @match          https://jirengu.com/tasks/*
 // @grant          none
-// @version        0.0.10
+// @version        0.0.11
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // ==/UserScript==
@@ -24,7 +24,7 @@ const VIDEO_AUTOPLAY = true                // 视频是否自动播放
 
 // ==Config For Development==
 const DEBUG_EVENT = false
-const EVENTS_DISABLE = ['mousemove', 'mouseenter', 'mouseleave', 'mouseover'] // 禁用事件，根本不绑定这些事件
+const EVENTS_DISABLE = ['mouseenter', 'mouseleave', 'mouseover'] // 禁用事件，根本不绑定这些事件
 const CMD_KEYDOWN_DISABLE = false
 const ESCAPE_KEYUP_HIJACK_AFTER = true     // escape keyup 在原事件之后加入 hook
 const TRIGGER_WEBPACKJSONP_API = true      // 调用饥人谷提供的 webpackJsonp API
@@ -34,7 +34,7 @@ const EVENTS_CONFIG = {
     'rawEvents': {
         'keyup': [{
             'eventName': 'keyup',
-            'key': 'Escape', 
+            'key': 'Escape',
             'this': document, // 针对 this=document, e.key='Escape', e.type='keyup' 的事件进行 hijack
             'fn': null, // 在原有事件处理程序之前插入 hook 的函数名
             'hijack': false, // 是否在原有事件处理程序之前插入 hook
@@ -42,13 +42,13 @@ const EVENTS_CONFIG = {
             'hijackAfter': ESCAPE_KEYUP_HIJACK_AFTER, // 是否在原有事件处理程序之后插入 hook
             'disable': false         // 是否禁用原有事件处理程序
         }, {
-                'eventName': 'keyup',
-                'key': 'f',
-                'this': document,
-                'fnAfter': 'websiteScreen',
-                'hijackAfter': F_KEYUP_HIJACK_AFTER,
-                'disable': true
-            }],
+            'eventName': 'keyup',
+            'key': 'f',
+            'this': document,
+            'fnAfter': 'websiteScreen',
+            'hijackAfter': F_KEYUP_HIJACK_AFTER,
+            'disable': true
+        }],
         'keydown': [{
             'eventName': 'keydown',
             'key': 'Meta',
@@ -135,7 +135,7 @@ let $eventsHandler = {
             bubbles: true,
             cancelable: true
         })
-        document.dispatchEvent(event);
+        document.dispatchEvent(event)
     },
     /**
      * 是否网页全屏 
@@ -158,7 +158,7 @@ let $eventsHandler = {
     },
     setVideoStatus(event) {
         video_status = event.type
-        LOG_VIDEO_STATUS && console.log(video_status);
+        LOG_VIDEO_STATUS && console.log(video_status)
     }
 }
 let $hijack = {
@@ -251,9 +251,9 @@ EventTarget.prototype.addEventListener = function (eventName, fn, ...args) {
 
 // use jirengu webpackJsonp API
 {
-    const DIGIT_RANDOM = Date.now();
-    const ID3145 = Number('' + 3145 + DIGIT_RANDOM) // override ArrowRight & ArrowLeft hotkeys
-    const start_arr = TRIGGER_WEBPACKJSONP_API ? [ID3145, DIGIT_RANDOM] : []
+    const DIGIT_RANDOM = Date.now()
+    const ID3190 = Number('' + 3190 + DIGIT_RANDOM) // override ArrowRight & ArrowLeft hotkeys
+    const start_arr = TRIGGER_WEBPACKJSONP_API ? [ID3190, DIGIT_RANDOM] : []
     let exportGlobal = function (Ft) {
         GLOBAL.Ft = GLOBAL.Ft || Ft // 利用 webpackJsonp API 导出 Ft
     }
@@ -262,13 +262,13 @@ EventTarget.prototype.addEventListener = function (eventName, fn, ...args) {
             [DIGIT_RANDOM]: function () {
                 // console.log(arguments);
             },
-            [ID3145]: function (e, t, n) {
-                "use strict";
-                var i = n(114)
+            [ID3190]: function (e, t, n) {
+                "use strict"
+                var i = n(108)  // 官网更新代码时，需要变更
                     , r = n.n(i)
-                    , a = n(220)
-                    , s = n(621) // 官网更新代码时，需要变更
-                    , o = n(622) // 官网更新代码时，需要变更
+                    , a = n(225) // 官网更新代码时，需要变更
+                    , s = n(642) // 官网更新代码时，需要变更
+                    , o = n(643) // 官网更新代码时，需要变更
                     , u = {
                         " ": {
                             pressUp: function (Ft) {
@@ -325,32 +325,40 @@ EventTarget.prototype.addEventListener = function (eventName, fn, ...args) {
                                 return document.dispatchEvent(new CustomEvent("videoToggleFullWindow"))
                             }
                         }
-                    };
+                    }
+                if (a.a == undefined || (a.a.registerPlugin instanceof Function === false)) {
+                    console.log('官网更新了')
+                    return
+                }
                 a.a.registerPlugin("keymapping", function () {
                     var e = this
-                        , t = new s.a;
+                    var t = new s.a
                     Object.entries(u).forEach(function (n) {
+                        if (r instanceof Function === false) {
+                            console.log('官网更新了')
+                            return
+                        }
                         var i = r()(n, 2)
-                            , a = i[0]
-                            , s = i[1];
+                        var a = i[0]
+                            , s = i[1]
                         Object.entries(s).forEach(function (n) {
                             var i = r()(n, 2)
-                                , s = i[0]
-                                , o = i[1];
+                            var s = i[0]
+                                , o = i[1]
                             t.register(a, s, function (t) {
                                 o(e)
                             })
                         })
-                    });
-                    t.listen();
+                    })
+                    t.listen()
                     document.addEventListener("onQuestionFormDialogToggle", function (e) {
                         e.detail ? t.pause() : t.listen()
-                    });
+                    })
                 })
             }
         }, start_arr)
     } catch (error) {
-        console.log(error);
+        console.error(error)
     }
 
 }

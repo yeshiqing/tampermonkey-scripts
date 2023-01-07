@@ -6,43 +6,50 @@
 // @run-at         document-idle
 // @match          *://*/*
 // @grant          none
-// @version        0.0.7
+// @version        0.0.8
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           https://upload-images.jianshu.io/upload_images/1231311-26b5e3552753c5bb.png
 // ==/UserScript==
 
-let isFn = function (x) { return (x instanceof Function) }
-
 let defineProperty = (obj, prop, getFn) => {
-    Object.defineProperty(obj, prop, {
-        "configurable": true,
-        "enumerable": false,
-        "writable": true,
-        "value": getFn
-    })
+    if (!obj.hasOwnProperty(prop)) {
+        Object.defineProperty(obj, prop, {
+            "configurable": true,
+            "enumerable": false,
+            "writable": true,
+            "value": getFn
+        })
+    }
 }
 
 let generate_console = function (...props) {
     props.forEach((prop, i) => {
-        (window.prop == undefined) &&
-            defineProperty(window, prop, function (...args) {
-                console[prop](...args)
-            })
-    })
-}
-
-let setEnumerableFalse = function (obj, prop) {
-    Object.defineProperty(obj, prop, {
-        "enumerable": false,
+        defineProperty(window, prop, function (...args) {
+            console[prop](...args)
+        })
     })
 }
 
 generate_console('log', 'dir')
 
 
-!('log' in Object.prototype) && (Object.prototype.log = function log() { console.log(this) })
-setEnumerableFalse(Object.prototype, 'log')
-setTimeout(() => { // 应对“掘金”主页，对象存在重名键 dir
-    !('dir' in Object.prototype) && (Object.prototype.dir = function dir() { console.dir(this) })
-    setEnumerableFalse(Object.prototype, 'dir')
-}, 1000)
+{
+    let excludedDomain = ["bilibili.com"]
+    let injectObjectPrototype = true
+    for (let host of excludedDomain) {
+        if (window.location.host.includes(host)) {
+            injectObjectPrototype = false
+            break
+        }
+    }
+
+    if (injectObjectPrototype === false) {
+        return
+    }
+
+    defineProperty(Object.prototype, 'log', function logCustom() { console.log(this) })
+
+    setTimeout(() => { // 应对“掘金”主页，对象存在重名键 dir
+        defineProperty(Object.prototype, 'dir', function dirCustom() { console.dir(this) })
+    }, 1000)
+}
