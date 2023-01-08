@@ -7,7 +7,7 @@
 // @match          https://xiedaimala.com/tasks/*
 // @match          https://jirengu.com/tasks/*
 // @grant          none
-// @version        0.0.11
+// @version        1.0.0
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // ==/UserScript==
@@ -15,7 +15,7 @@
 // ==用户可修改的配置项==
 // *_DISABLE 表示禁用原有事件
 // *_HIJACK 表示劫持原事件，插入 hook
-const VOLUME_ADJUST_ARROWKEY_DOWN = 4      // 左右方向键调整视频快进快退的粒度
+const VOLUME_ADJUST_ARROWKEY_DOWN = 4      // 左右方向键调整视频快进快退的粒度，以秒为单位
 const VIDEO_DBLCLICK_DISABLE = true        // 禁用视频原有的鼠标双击切换「全屏」。当切换应用时会误触发切换至「全屏」。
 const F_KEYUP_HIJACK_AFTER = true          // 按 f 键，切换「网页全屏」。
 const AUTO_FULLWINDOW = true               // 视频是否自动「网页全屏」
@@ -34,7 +34,7 @@ const EVENTS_CONFIG = {
     'rawEvents': {
         'keyup': [{
             'eventName': 'keyup',
-            'key': 'Escape',
+            'key': 'Escape', // event.key
             'this': document, // 针对 this=document, e.key='Escape', e.type='keyup' 的事件进行 hijack
             'fn': null, // 在原有事件处理程序之前插入 hook 的函数名
             'hijack': false, // 是否在原有事件处理程序之前插入 hook
@@ -45,7 +45,7 @@ const EVENTS_CONFIG = {
             'eventName': 'keyup',
             'key': 'f',
             'this': document,
-            'fnAfter': 'websiteScreen',
+            'fnAfter': 'switchWebsiteScreen',
             'hijackAfter': F_KEYUP_HIJACK_AFTER,
             'disable': true
         }],
@@ -54,6 +54,22 @@ const EVENTS_CONFIG = {
             'key': 'Meta',
             'this': document,
             'disable': CMD_KEYDOWN_DISABLE
+        }, {
+            'eventName': 'keydown',
+            'key': 'ArrowRight',
+            'this': document,
+            'fnAfter': 'fastForward',
+            'hijackAfter': true,
+            'disable': true
+
+        }, {
+            'eventName': 'keydown',
+            'key': 'ArrowLeft',
+            'this': document,
+            'fnAfter': 'fastRewind',
+            'hijackAfter': true,
+            'disable': true
+
         }],
         'click': [{
             'eventName': 'click',
@@ -78,17 +94,164 @@ const EVENTS_CONFIG = {
 }
 // ==/Config For Development==
 
+/**
+ * 触发 hijack 和 hijackAfter 所绑定的事件
+ */
+let $triggerHijackEvents = {
+    video_status: 'loadedmetadata', // loadedmetadata, playing, play, waiting, pause, ended 
+    _simulate_keyupEscape() {
+        const event = new KeyboardEvent('keyup', {
+            key: "Escape",
+            view: window,
+            bubbles: true,
+            cancelable: true
+        })
+        document.dispatchEvent(event)
+    },
+    /**
+     * 是否网页全屏 
+     */
+    _isWebsiteScreen() {
+        let elm = document.querySelector('.video-wrapper')
+        return elm && elm.matches('.fullWindow')
+    },
+    /**
+     * f keyup trigger 切换「网页全屏」
+     */
+    switchWebsiteScreen(event) {
+        if ($triggerHijackEvents._isWebsiteScreen()) {
+            $triggerHijackEvents._simulate_keyupEscape()
+        } else {
+            document.dispatchEvent(new CustomEvent("videoToggleFullWindow"))
+        }
+    },
+    _getVideo() {
+        return document.querySelector('.vjs-tech') || document.querySelector('video')
+    },
+    /**
+     * Escape keyup trigger
+     */
+    pauseVideo(event) {
+        if (this._isWebsiteScreen()) {
+            let video = $triggerHijackEvents._getVideo()
+            video && video.pause()
+        }
+    },
+    /**
+     * 'videoEvents' trigger
+     */
+    setVideoStatus(event) {
+        $triggerHijackEvents.video_status = event.type
+        LOG_VIDEO_STATUS && console.log($triggerHijackEvents.video_status)
+    },
+    /**
+     * ArrowRight keydown trigger
+     */
+    fastForward(event) {
+        let video = $triggerHijackEvents._getVideo()
+        video && (video.currentTime = video.currentTime + VOLUME_ADJUST_ARROWKEY_DOWN)
+    },
+    /**
+     * ArrowLeft keydown trigger
+     */
+    fastRewind(event) {
+        let video = $triggerHijackEvents._getVideo()
+        video && (video.currentTime = video.currentTime - VOLUME_ADJUST_ARROWKEY_DOWN)
+    }
+}
+let $hijack = {
+    events: EVENTS_CONFIG,
+    /**
+     * 是否拦截原事件处理程序
+     * @param {object} event
+     * @returns {boolean}
+     */
+    isDisable(event) {
+        let obj = $hijack.getEvent(event)
+        if (obj) {
+            let { disable } = obj
+            disable = (typeof disable === 'boolean' ? disable : false) // 默认 disable 为 false
+
+            return disable
+        }
+        return false
+    },
+    /**
+     * 在原本事件之前触发的 hook
+     */
+    trigger(event) {
+        let obj = $hijack.getEvent(event)
+        if (obj) {
+            let { hijack } = obj
+            hijack = (typeof hijack === 'boolean' ? hijack : false) // 默认 hijack 为 false
+
+            hijack && ($triggerHijackEvents[obj.fn] || function (e) { })(event)
+        }
+    },
+    /**
+     * 在原本事件之后触发的 hook
+     */
+    triggerAfter(event) {
+        let obj = $hijack.getEvent(event)
+        if (obj) {
+            let { hijackAfter } = obj
+            hijackAfter = (typeof hijackAfter === 'boolean' ? hijackAfter : false) // 默认 hijackAfter 为 false
+
+            hijackAfter && ($triggerHijackEvents[obj.fnAfter] || function (e) { })(event)
+
+        }
+    },
+    getThis(selector) {
+        if (selector instanceof Object) {
+            return selector
+        } else if (typeof selector === 'string') {
+            return document.querySelector(selector)
+        } else if (typeof selector === 'undefined') {
+            console.warn(`add 'this' to 'EVENTS_CONFIG' or 'window' in default`)
+            return window
+        }
+        throw new Error(`can't find element according to the selector: '${selector}'`,)
+    },
+    /**
+     * 获取 EVENTS_CONFIG 中的事件信息
+     */
+    getEvent(event) {
+        let eventName = event.type
+        // get from 'videoEvents'
+        const videoEvents = $hijack.events.videoEvents
+        const VIDEO_EVENTNAME = videoEvents.eventName
+        if (VIDEO_EVENTNAME.includes(eventName) || event.currentTarget.tagName === 'video') {
+            return videoEvents
+        }
+
+        // get from 'rawEvents'
+        let arr = $hijack.events.rawEvents[eventName] || null
+        if (arr) {
+            let currentTarget = event.currentTarget
+            let key = event.key
+            let obj = arr.find((el, i) => {
+                return $hijack.getThis(el['this']) === currentTarget && (el.key ? el.key === key : true)
+            })
+            return obj || null
+        }
+        return null
+    }
+}
+
+// init
 window.onload = () => {
     setTimeout(() => { // wait for xhr done
-        $init.getVideoTitle()
+        $init.setDocumentTitleToVideoTitle()
         $init.videoAutoPlay()
     }, 2000)
 
     $init.disableWatermark()
+    $init.createNewHotkeys()
+    $init.hijackOriginalHotkeys()
 }
 
 let $init = {
-    getVideoTitle() {
+    setDocumentTitleToVideoTitle() {
         let ele_title = document.querySelector('.video-title') || document.querySelector('j-panel-title h1')
         ele_title && (document.title = ele_title.innerHTML)
     },
@@ -108,148 +271,50 @@ let $init = {
                 ele_fullWin && ele_fullWin.click()
             }
         }
-    }
-}
-
-
-// control + option + arrowRight = next video
-window.addEventListener('keydown', (e) => {
-    let nodeList = document.querySelectorAll('.task-name')
-    let length = nodeList.length
-    let span_nextTask = nodeList[length - 1]
-    if (span_nextTask && e.ctrlKey && e.altKey && e.key === 'ArrowRight') {
-        span_nextTask.click()
-    }
-})
-
-const GLOBAL = {
-    Ft: null // 饥人谷原始代码中的 Ft 对象位于 show-pc 文件 2948 行，它有很多方法，比如控制 video 的 Ft.play() Ft.pause() Ft.exitFullscreen() Ft.requestFullscreen()
-}
-var video = document.querySelector('video')
-let video_status = 'loadedmetadata' // loadedmetadata playing play waiting pause ended 
-let $eventsHandler = {
-    simulate_keyupEscape() {
-        const event = new KeyboardEvent('keyup', {
-            key: "Escape",
-            view: window,
-            bubbles: true,
-            cancelable: true
+    },
+    /**
+     * control + option + arrowRight = next video
+     */
+    createNewHotkeys() {
+        // control + option + arrowRight = next video
+        window.addEventListener('keydown', (e) => {
+            let nodeList = document.querySelectorAll('.task-name')
+            let length = nodeList.length
+            let span_nextTask = nodeList[length - 1]
+            if (span_nextTask && e.ctrlKey && e.altKey && e.key === 'ArrowRight') {
+                span_nextTask.click()
+            }
         })
-        document.dispatchEvent(event)
     },
-    /**
-     * 是否网页全屏 
-     */
-    isWebsiteScreen() {
-        let elm = document.querySelector('.video-wrapper')
-        return elm && elm.matches('.fullWindow')
-    },
-    // 切换「网页全屏」
-    websiteScreen(event) {
-        if ($eventsHandler.isWebsiteScreen()) {
-            $eventsHandler.simulate_keyupEscape()
-        } else {
-            document.dispatchEvent(new CustomEvent("videoToggleFullWindow"))
-        }
-    },
-    // 停止播放
-    pauseVideo(event) {
-        ($eventsHandler.isWebsiteScreen()) && GLOBAL.Ft && GLOBAL.Ft.pause()
-    },
-    setVideoStatus(event) {
-        video_status = event.type
-        LOG_VIDEO_STATUS && console.log(video_status)
-    }
-}
-let $hijack = {
-    events: EVENTS_CONFIG,
-    /**
-     * 在原本事件之前触发的 hook
-     * @return {boolean} 是否拦截原事件处理程序
-     */
-    trigger(event) {
-        let obj = $hijack.getEvent(event)
-        if (obj) {
-            let { disable, hijack } = obj
-            disable = (typeof disable === 'boolean' ? disable : false) // 默认 disable 为 false
-            hijack = (typeof hijack === 'boolean' ? hijack : false) // 默认 hijack 为 false
+    hijackOriginalHotkeys() {
+        const OLD_ADD_EL = EventTarget.prototype.addEventListener
+        EventTarget.prototype.addEventListener = function (eventName, fn, ...args) {
+            if (EVENTS_DISABLE.includes(eventName)) {
+                return
+            }
 
-            hijack && ($eventsHandler[obj.fn] || function (e) { })(event)
+            // worker inject error. `worker.addEventListener('message',fn)`
+            if (this instanceof Worker) {
+                OLD_ADD_EL.call(this, eventName, fn, ...args)
+                return
+            }
 
-            return disable
-        }
-        return false
-    },
-    /**
-     * 在原本事件之后触发的 hook
-     */
-    triggerAfter(event) {
-        let obj = $hijack.getEvent(event)
-        if (obj) {
-            let { hijackAfter } = obj
-            hijackAfter = (typeof hijackAfter === 'boolean' ? hijackAfter : false) // 默认 hijackAfter 为 false
+            OLD_ADD_EL.call(this, eventName, function foo(event) {
+                if (DEBUG_EVENT && event.type === 'keydown' && event.key === 'ArrowRight' /* && event.currentTarget === video*/) {
+                    debugger
+                }
 
-            hijackAfter && ($eventsHandler[obj.fnAfter] || function (e) { })(event)
-
+                $hijack.trigger(event)
+                !$hijack.isDisable(event) && fn.call(this, event)
+                $hijack.triggerAfter(event)
+            }, ...args)
         }
-    },
-    getThis(selector) {
-        if (selector instanceof Object) {
-            return selector
-        } else if (typeof selector === 'string') {
-            return document.querySelector(selector)
-        }
-        console.error("can't find the specified element")
-        return window
-    },
-    getEvent(event) {
-        let eventName = event.type
-        const videoEvents = $hijack.events.videoEvents
-        const VIDEO_EVENTNAME = videoEvents.eventName
-        if (VIDEO_EVENTNAME.includes(eventName) || event.currentTarget.tagName === 'video') {
-            return videoEvents
-        }
-
-        let arr = $hijack.events.rawEvents[eventName] || null
-        if (arr) {
-            let currentTarget = event.currentTarget
-            let key = event.key
-            let obj = arr.find((el, i) => {
-                return $hijack.getThis(el['this']) === currentTarget && (el.key ? el.key === key : true)
-            })
-            return obj || null
-        }
-        return null
     }
 }
 
-const OLD_ADD_EL = EventTarget.prototype.addEventListener
-EventTarget.prototype.addEventListener = function (eventName, fn, ...args) {
-    if (EVENTS_DISABLE.includes(eventName)) {
-        return
-    }
 
-    // worker inject error. worker.addEventListener('message',fn) 
-    if (this instanceof Worker) {
-        OLD_ADD_EL.call(this, eventName, fn, ...args)
-        return
-    }
-
-    OLD_ADD_EL.call(this, eventName, function foo(event) {
-
-        if (DEBUG_EVENT && event.type === 'keyup' && event.key === 'f' /* && event.currentTarget === video*/) {
-            // debugger
-        }
-
-        if (!$hijack.trigger(event)) {
-            fn.call(this, event)
-        }
-
-        $hijack.triggerAfter(event)
-    }, ...args)
-}
-
-// use jirengu webpackJsonp API
+// Don't rely on jirengu 'webpackJsonp' API. It's not public API, which updates frequently.
+/*
 {
     const DIGIT_RANDOM = Date.now()
     const ID3190 = Number('' + 3190 + DIGIT_RANDOM) // override ArrowRight & ArrowLeft hotkeys
@@ -360,5 +425,5 @@ EventTarget.prototype.addEventListener = function (eventName, fn, ...args) {
     } catch (error) {
         console.error(error)
     }
-
 }
+ */
