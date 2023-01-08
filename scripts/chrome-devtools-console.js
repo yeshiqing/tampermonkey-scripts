@@ -51,20 +51,6 @@ let chromeDevTools = {
             })
         })
     },
-    _getInject() {
-        const exclude_domain_contains = [
-            "bilibili.com" /** */
-        ]
-
-        let inject = true
-        for (let host of exclude_domain_contains) {
-            if (window.location.host.includes(host)) {
-                inject = false
-                break
-            }
-        }
-        return inject
-    },
     inject_objectPrototype(props) {
         props.forEach((item) => {
             let { prop, value, options } = item
