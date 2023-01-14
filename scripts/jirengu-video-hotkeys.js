@@ -197,8 +197,7 @@ let $hijack = {
             let { hijackAfter } = obj
             hijackAfter = (typeof hijackAfter === 'boolean' ? hijackAfter : false) // 默认 hijackAfter 为 false
 
-            hijackAfter && ($triggerHijackEvents[obj.fnAfter] || function (e) { })(event)
-
+            hijackAfter && ($triggerHijackEvents[obj.fnAfter] || function (e) { }).call($triggerHijackEvents, event)
         }
     },
     getThis(selector) {
@@ -237,19 +236,6 @@ let $hijack = {
         return null
     }
 }
-
-// init
-window.onload = () => {
-    setTimeout(() => { // wait for xhr done
-        $init.setDocumentTitleToVideoTitle()
-        $init.videoAutoPlay()
-    }, 2000)
-
-    $init.disableWatermark()
-    $init.createNewHotkeys()
-    $init.hijackOriginalHotkeys()
-}
-
 let $init = {
     setDocumentTitleToVideoTitle() {
         let ele_title = document.querySelector('.video-title') || document.querySelector('j-panel-title h1')
@@ -312,118 +298,14 @@ let $init = {
     }
 }
 
+// init
+window.onload = () => {
+    setTimeout(() => { // wait for xhr done
+        $init.setDocumentTitleToVideoTitle()
+        $init.videoAutoPlay()
+    }, 2000)
 
-// Don't rely on jirengu 'webpackJsonp' API. It's not public API, which updates frequently.
-/*
-{
-    const DIGIT_RANDOM = Date.now()
-    const ID3190 = Number('' + 3190 + DIGIT_RANDOM) // override ArrowRight & ArrowLeft hotkeys
-    const start_arr = TRIGGER_WEBPACKJSONP_API ? [ID3190, DIGIT_RANDOM] : []
-    let exportGlobal = function (Ft) {
-        GLOBAL.Ft = GLOBAL.Ft || Ft // 利用 webpackJsonp API 导出 Ft
-    }
-    try {
-        window.webpackJsonp([], {
-            [DIGIT_RANDOM]: function () {
-                // console.log(arguments);
-            },
-            [ID3190]: function (e, t, n) {
-                "use strict"
-                var i = n(108)  // 官网更新代码时，需要变更
-                    , r = n.n(i)
-                    , a = n(225) // 官网更新代码时，需要变更
-                    , s = n(642) // 官网更新代码时，需要变更
-                    , o = n(643) // 官网更新代码时，需要变更
-                    , u = {
-                        " ": {
-                            pressUp: function (Ft) {
-                                exportGlobal(Ft)
-                                Ft.paused() ? Ft.play() : Ft.pause()
-                            },
-                            longPressStart: function (e) {
-                                e.paused() || o.a.explode({
-                                    newInstance: e
-                                })
-                            },
-                            longPressEnd: function (e) {
-                                e.paused() || o.a.resume()
-                            }
-                        },
-                        // 进入/退出「全屏」模式
-                        f: {
-                            pressUp: function (Ft) {
-                                exportGlobal(Ft)
-                                return Ft.isFullscreen() ? Ft.exitFullscreen() : Ft.requestFullscreen()
-                            }
-                        },
-                        ArrowLeft: {
-                            pressDown: function (Ft) {
-                                exportGlobal(Ft)
-                                return Ft.currentTime(Ft.currentTime() - VOLUME_ADJUST_ARROWKEY_DOWN)
-                            }
-                        },
-                        ArrowRight: {
-                            pressDown: function (Ft) {
-                                exportGlobal(Ft)
-                                return Ft.currentTime(Ft.currentTime() + VOLUME_ADJUST_ARROWKEY_DOWN)
-                            }
-                        },
-                        ArrowDown: {
-                            pressDown: function (e) {
-                                return e.volume(e.volume() < .1 ? 0 : e.volume() - .1)
-                            }
-                        },
-                        ArrowUp: {
-                            pressDown: function (e) {
-                                return e.volume(e.volume() > .9 ? 1 : e.volume() + .1)
-                            }
-                        },
-                        Escape: {
-                            pressUp: function (Ft) {
-                                exportGlobal(Ft)
-                                return document.dispatchEvent(new CustomEvent("videoExitFullWindow"))
-                            }
-                        },
-                        // 进入/退出「网页全屏」模式
-                        w: {
-                            pressUp: function (Ft) {
-                                return document.dispatchEvent(new CustomEvent("videoToggleFullWindow"))
-                            }
-                        }
-                    }
-                if (a.a == undefined || (a.a.registerPlugin instanceof Function === false)) {
-                    console.log('官网更新了')
-                    return
-                }
-                a.a.registerPlugin("keymapping", function () {
-                    var e = this
-                    var t = new s.a
-                    Object.entries(u).forEach(function (n) {
-                        if (r instanceof Function === false) {
-                            console.log('官网更新了')
-                            return
-                        }
-                        var i = r()(n, 2)
-                        var a = i[0]
-                            , s = i[1]
-                        Object.entries(s).forEach(function (n) {
-                            var i = r()(n, 2)
-                            var s = i[0]
-                                , o = i[1]
-                            t.register(a, s, function (t) {
-                                o(e)
-                            })
-                        })
-                    })
-                    t.listen()
-                    document.addEventListener("onQuestionFormDialogToggle", function (e) {
-                        e.detail ? t.pause() : t.listen()
-                    })
-                })
-            }
-        }, start_arr)
-    } catch (error) {
-        console.error(error)
-    }
+    $init.disableWatermark()
+    $init.createNewHotkeys()
+    $init.hijackOriginalHotkeys()
 }
- */
