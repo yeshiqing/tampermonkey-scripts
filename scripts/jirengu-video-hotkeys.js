@@ -7,7 +7,7 @@
 // @match          https://xiedaimala.com/tasks/*
 // @match          https://jirengu.com/tasks/*
 // @grant          none
-// @version        1.1.0
+// @version        1.1.1
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // ==/UserScript==
@@ -313,7 +313,7 @@ let $init = {
         CUSTOM_EVENTS_CONFIG.forEach((item) => {
             let { eventType, fn } = item
             let { checkKeycodes, trigger } = $customEventsHandler
-            eventTarget = item['this'] || window
+            let eventTarget = item['this'] || window
             eventTarget.addEventListener(eventType, (e) => {
                 if (checkKeycodes(e, item)) {
                     $utils.isFunction(trigger[fn]) && trigger[fn]()
@@ -336,7 +336,7 @@ let $init = {
             }
 
             OLD_ADD_EL.call(this, eventType, function foo(event) {
-                if (DEBUG_EVENT_MODE && event.type === 'keydown' && event.key === 'ArrowRight' /* && event.currentTarget === video*/) {
+                if (DEBUG_EVENT_MODE && event.type === 'keyup' && event.key === 'Escape' /*&& event.currentTarget === document*/) {
                     debugger
                 }
 
