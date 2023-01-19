@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name           jirengu video hotkeys
-// @description    Control+Option+ArrowRight = next video. For other configuration, see the top of source codes.
+// @description    Control + Option/Alt + ArrowRight = next video. For other configuration, see the top of source codes.
 // @author         yeshiqing
 // @license        MIT
 // @run-at         document-idle
 // @match          https://xiedaimala.com/tasks/*
 // @match          https://jirengu.com/tasks/*
 // @grant          none
-// @version        1.1.1
+// @version        1.1.2
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // ==/UserScript==
@@ -21,11 +21,10 @@ const F_KEYUP_SWITCH_WEBSITESCREEN = true       // f keyup 事件是否触发切
 const ESCAPE_KEYUP_PAUSE_VIDEO = true           // esc keyup 事件触发退出全屏后，是否暂停播放。若为 false 则事件触发退出全屏后，保持原有播放状态。
 const VIDEO_AUTOPLAY = true                     // 视频是否自动播放
 const SHOW_VIDEO_TITLE = true                   // 浏览器标签页的标题是否显示为视频标题
-const WATERMARK_DISABLE = true                  // 是否禁用视频水印
-const EVENTS_DISABLE = ['mouseover'] // 禁用原有事件。禁用 mouseover 会使得鼠标悬浮到音量键上方时不显示音量，这样做的好处是进度条不会往后移动，个人喜好。
+const VOLUMN_BTN_MOUSEOVER_DISABLE = true       // 是否禁用音量调节按钮的 mouseover 事件。禁用 mouseover 会使得鼠标悬浮到音量键上方时不显示音量，这样做的好处是当想精细调节进度时，滑动鼠标到进度条开头部分，不会误触发音量调节。属于个人喜好，我一般用键盘的音量键调节音量。
 const CUSTOM_EVENTS_CONFIG = [
     {
-        description: "control + option/alt + arrowRight = next video",
+        description: "Control + Option/Alt + ArrowRight = next video",
         key: "ArrowRight",                // e.key
         eventType: "keydown",
         this: window,                     // 监听哪个对象的事件，默认为 window
@@ -37,6 +36,7 @@ const CUSTOM_EVENTS_CONFIG = [
 
 // ==Config For Development==
 const DEBUG_EVENT_MODE = false             // 是否开启事件调试模式
+const EVENTS_DISABLE = [/*'mouseover'*/]   // 禁用所有该类型的事件。
 const CMD_KEYDOWN_DISABLE = false          // 用于调试
 const VIDEO_CLICK_DISABLE = false          // 用于调试。不触发源代码中与 video click 事件相关的函数，因为按快捷键前需要点击一下聚焦 video。
 const LOG_VIDEO_STATUS = false
@@ -93,6 +93,11 @@ const HIJACK_EVENTS_CONFIG = {
             'this': 'video',
             'disable': VIDEO_DBLCLICK_DISABLE
         }],
+        'mouseover': [{
+            'eventType': 'mouseover',
+            'this': '.vjs-volume-panel',
+            'disable': VOLUMN_BTN_MOUSEOVER_DISABLE
+        }]
     },
     // 自定义。与 rawEvents 有不同数据结构
     'videoEvents': {
@@ -282,14 +287,6 @@ let $init = {
         let ele_title = document.querySelector('.video-title') || document.querySelector('j-panel-title h1')
         ele_title && (document.title = ele_title.innerHTML)
     },
-    disableWatermark() {
-        if (!WATERMARK_DISABLE) { return }
-        let style = document.createElement('style')
-        style.innerText = `
-        #xdml-video-watermark{display:none;}
-        `.trim()
-        document.head.appendChild(style)
-    },
     videoAutoPlay() {
         if (!VIDEO_AUTOPLAY) { return }
 
@@ -355,7 +352,6 @@ window.onload = () => {
         $init.videoAutoPlay()
     }, 2000)
 
-    $init.disableWatermark()
     $init.createCustomHotkeys()
     $init.hijackOriginalHotkeys()
 }
