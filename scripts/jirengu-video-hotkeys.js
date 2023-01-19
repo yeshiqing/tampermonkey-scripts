@@ -7,20 +7,20 @@
 // @match          https://xiedaimala.com/tasks/*
 // @match          https://jirengu.com/tasks/*
 // @grant          none
-// @version        1.1.2
+// @version        1.1.3
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // ==/UserScript==
 
 // ==用户可修改的配置项==
 const VOLUME_ADJUST_ARROWKEY_DOWN = 4           // 左右方向键调整视频快进快退的粒度，以秒为单位。
-const VIDEO_DBLCLICK_DISABLE = true             // 是否禁用视频原有的鼠标双击事件，原有事件会切换「全屏」模式。当切换应用时会误触发双击事件，导致切换至「全屏」。
 const AUTO_FULLSCREEN = true                    // 视频是否自动全屏
 const AUTO_FULLSCREEN_MODE_WEBSITESCREEN = true // 自动全屏是否采用「网页全屏」模式。若为 false，则采用「全屏」模式
-const F_KEYUP_SWITCH_WEBSITESCREEN = true       // f keyup 事件是否触发切换「网页全屏」。若为 false 则事件触发时切换「全屏」。
-const ESCAPE_KEYUP_PAUSE_VIDEO = true           // esc keyup 事件触发退出全屏后，是否暂停播放。若为 false 则事件触发退出全屏后，保持原有播放状态。
 const VIDEO_AUTOPLAY = true                     // 视频是否自动播放
 const SHOW_VIDEO_TITLE = true                   // 浏览器标签页的标题是否显示为视频标题
+const F_KEYUP_SWITCH_WEBSITESCREEN = true       // f keyup 事件是否触发切换「网页全屏」。若为 false 则事件触发时切换「全屏」。
+const ESCAPE_KEYUP_PAUSE_VIDEO = true           // esc keyup 事件触发退出全屏后，是否暂停播放。若为 false 则事件触发退出全屏后，保持原有播放状态。
+const VIDEO_DBLCLICK_DISABLE = true             // 是否禁用视频原有的鼠标双击事件，原有事件会切换「全屏」模式。当切换应用时会误触发双击事件，导致切换至「全屏」。
 const VOLUMN_BTN_MOUSEOVER_DISABLE = true       // 是否禁用音量调节按钮的 mouseover 事件。禁用 mouseover 会使得鼠标悬浮到音量键上方时不显示音量，这样做的好处是当想精细调节进度时，滑动鼠标到进度条开头部分，不会误触发音量调节。属于个人喜好，我一般用键盘的音量键调节音量。
 const CUSTOM_EVENTS_CONFIG = [
     {

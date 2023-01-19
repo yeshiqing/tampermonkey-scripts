@@ -20,7 +20,7 @@
 | :----------------------------------- | ------------------------------------------------------------ |
 | `CUSTOM_EVENTS_CONFIG`               | Control + Option/Alt + ArrowRight 跳到下一节                 |
 | `VOLUME_ADJUST_ARROWKEY_DOWN`        | 左右方向键调整视频快进快退的粒度，以秒为单位。               |
-| `AUTO_FULLSCREEN`                    | 是否自动全屏                                                 |
+| `AUTO_FULLSCREEN`                    | 视频是否自动全屏                                             |
 | `AUTO_FULLSCREEN_MODE_WEBSITESCREEN` | 自动全屏是否采用「网页全屏」模式                             |
 | `VIDEO_AUTOPLAY`                     | 视频是否自动播放                                             |
 | `SHOW_VIDEO_TITLE`                   | 浏览器标签页的标题是否显示为视频标题。<br />便于「网页全屏」状态下，查看本节课主旨。 |
