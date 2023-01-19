@@ -44,5 +44,8 @@
 
 ## 四、如何安装
 
-1. 首先在 Chrome 中安装用户脚本管理器 [Tampermonkey 插件](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
-2. 访问提供用户脚本的网站 [Greasy Fork](https://greasyfork.org/en/scripts/454346-jirengu-video-hotkeys)，安装脚本。
+1. 首先在浏览器中安装用户脚本管理器  
+    - Chrome：[Tampermonkey 插件](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
+    - Microsoft Edge：[Tampermonkey 插件](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd)
+    - 其他浏览器：[Greasy Fork 官网教程](https://greasyfork.org/en/help/installing-user-scripts)
+2. 访问提供用户脚本的网站 [jirengu video hotkeys | Greasy Fork](https://greasyfork.org/en/scripts/454346-jirengu-video-hotkeys)，安装脚本。
