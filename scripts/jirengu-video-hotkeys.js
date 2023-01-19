@@ -7,7 +7,7 @@
 // @match          https://xiedaimala.com/tasks/*
 // @match          https://jirengu.com/tasks/*
 // @grant          none
-// @version        1.1.3
+// @version        1.1.4
 // @namespace      https://github.com/yeshiqing/tampermonkey-scripts
 // @icon           https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // ==/UserScript==
@@ -285,7 +285,7 @@ let $init = {
     setDocumentTitleToVideoTitle() {
         if (!SHOW_VIDEO_TITLE) { return }
         let ele_title = document.querySelector('.video-title') || document.querySelector('j-panel-title h1')
-        ele_title && (document.title = ele_title.innerHTML)
+        ele_title && (document.title = ele_title.textContent)
     },
     videoAutoPlay() {
         if (!VIDEO_AUTOPLAY) { return }
